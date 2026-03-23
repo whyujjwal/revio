@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "88324c1ee2e4",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "apps/api/.env.example",
+    "apps/api/app/api/routes/chat.py",
+    "apps/api/app/api/routes/livekit.py",
+    "apps/api/app/core/config.py",
+    "apps/api/app/main.py",
+    "apps/api/app/services/gemini.py",
+    "apps/api/app/services/livekit_agent.py",
+    "apps/api/app/services/resume_processor.py",
+    "apps/api/pyproject.toml",
+    "apps/web/src/app/admin/upload/page.tsx",
+    "apps/web/src/app/chat/page.tsx",
+    "apps/web/src/app/page.tsx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/88/324c1ee2e4/0/metadata.json",
+      "transcript": "/88/324c1ee2e4/0/full.jsonl",
+      "context": "/88/324c1ee2e4/0/context.md",
+      "content_hash": "/88/324c1ee2e4/0/content_hash.txt",
+      "prompt": "/88/324c1ee2e4/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1707,
+    "cache_creation_tokens": 289714,
+    "cache_read_tokens": 22451016,
+    "output_tokens": 86026,
+    "api_call_count": 191
+  }
+}

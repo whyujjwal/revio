@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "88324c1ee2e4",
+  "session_id": "f186b26e-cceb-4cb1-ba88-2431de60935f",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-23T08:02:09.65658Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "apps/api/.env.example",
+    "apps/api/app/api/routes/chat.py",
+    "apps/api/app/api/routes/livekit.py",
+    "apps/api/app/core/config.py",
+    "apps/api/app/main.py",
+    "apps/api/app/services/gemini.py",
+    "apps/api/app/services/livekit_agent.py",
+    "apps/api/app/services/resume_processor.py",
+    "apps/api/pyproject.toml",
+    "apps/web/src/app/admin/upload/page.tsx",
+    "apps/web/src/app/chat/page.tsx",
+    "apps/web/src/app/page.tsx"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "79292fd8e4d2",
+  "transcript_identifier_at_start": "4964cc76-6cb1-4bd6-8647-16e9ad905bd5",
+  "token_usage": {
+    "input_tokens": 1707,
+    "cache_creation_tokens": 289714,
+    "cache_read_tokens": 22451016,
+    "output_tokens": 86026,
+    "api_call_count": 191
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-23T08:02:08.778531Z",
+    "agent_lines": 0,
+    "human_added": 390,
+    "human_modified": 225,
+    "human_removed": 0,
+    "total_committed": 398,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-Users-ujjwalraj-Developer-revio/f186b26e-cceb-4cb1-ba88-2431de60935f.jsonl"
+}
