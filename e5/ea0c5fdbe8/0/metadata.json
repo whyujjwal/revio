@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "e5ea0c5fdbe8",
+  "session_id": "f186b26e-cceb-4cb1-ba88-2431de60935f",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-23T08:06:40.073236Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "apps/api/app/core/config.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "e8f96bfc699a",
+  "transcript_identifier_at_start": "4964cc76-6cb1-4bd6-8647-16e9ad905bd5",
+  "token_usage": {
+    "input_tokens": 1742,
+    "cache_creation_tokens": 302913,
+    "cache_read_tokens": 27078612,
+    "output_tokens": 91161,
+    "api_call_count": 224
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-23T08:06:39.022757Z",
+    "agent_lines": 0,
+    "human_added": 9,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 9,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-Users-ujjwalraj-Developer-revio/f186b26e-cceb-4cb1-ba88-2431de60935f.jsonl"
+}
