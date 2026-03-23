@@ -35,8 +35,17 @@ services:
       LOG_JSON: "true"
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       DEBUG: ${DEBUG:-false}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@revio.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+      SECRET_KEY: ${SECRET_KEY:-changeme-secret-key}
+      RESUME_STORAGE_PATH: .data/resumes
+      LIVEKIT_URL: ${LIVEKIT_URL:-ws://livekit:7880}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-devkey}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-devsecret}
     volumes:
       - chromadb_data:/app/apps/api/.data/chromadb
+      - resume_data:/app/apps/api/.data/resumes
     ports:
       - "8000:8000"
     healthcheck:
@@ -46,6 +55,20 @@ services:
       retries: 5
       start_period: 10s
 
+  # ── LiveKit Server ──────────────────────────────────────────────────────────
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: revio_livekit
+    restart: unless-stopped
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+    environment:
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:-devkey}: ${LIVEKIT_API_SECRET:-devsecret}"
+    command: --dev
+
 volumes:
   postgres_data:
   chromadb_data:
+  resume_data:

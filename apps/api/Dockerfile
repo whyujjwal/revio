@@ -37,9 +37,15 @@ ENV PYTHONUNBUFFERED=1
 # Work from the API subdir (matches uvicorn's import root)
 WORKDIR /app/apps/api
 
-# ChromaDB persists here; mount a volume at runtime
-RUN mkdir -p .data/chromadb
+# Create data directories
+RUN mkdir -p .data/chromadb .data/resumes
 
-EXPOSE 8000
+# Railway sets PORT dynamically
+ENV PORT=8000
+EXPOSE ${PORT}
 
-CMD ["/app/.venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start script runs migrations then uvicorn
+COPY apps/api/start.sh /app/apps/api/start.sh
+RUN chmod +x /app/apps/api/start.sh
+
+CMD ["bash", "start.sh"]
