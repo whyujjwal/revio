@@ -1,0 +1,26 @@
+i want you to fetch this repo and setup our code based on this our apps name is revio https://github.com/whyujjwal/AgentOptimisedMonorepo
+
+---
+
+So, okay, this is an application where we will be putting a lot of resumes in the database, or any database, or anything, a vector database of that sort. We'll be having an admin panel and a user-facing application where the user can talk to an AI agent. The AI agent would be live kits AI agent, and it will fetch the data from the database and help in recruitment or through those resumes. The user can have a normal conversation with the AI agent, and it can filter out resumes on the basis of that and can present a lot of useful people.
+The conversation would be to and fro, so the AI agent would ask the user questions to clarify what he really wants. Basically, you'll have to understand that the end user is not that educated in the tech front, and if he wants to hire someone in tech, he needs to have some information. He needs not to have information about the technical ecosystem. We want a really amazing AI agent which can talk to the end user and help him get the best resumes. There would be an admin panel to upload a bunch of resumes. You will have to create a vector database or anything that you think is the best approach. And we'll have a simple email and password login for our admin. For the user application, there would be no login page. For the backend, we'll be using Gemini API keys for AI calling an AI agent.
+
+---
+
+So I want to deploy this on Railway and the frontend on Vercel. Set up the whole flow for that. I just would connect my GitHub with this repo on Railway and on Vercel, so everything should work just fine.
+
+---
+
+Push the code to git up.
+
+---
+
+Pull the code from the main branch. Let's run it locally.
+
+---
+
+So we'll be using LiveKit voice agents to have a to and fro conversation with the AI agent. The user can also have a chat-based talk with Gemini API keys in the backend and try to focus on integrating the admin panel. Give me a login credential for the admin panel as well.
+
+---
+
+give me admin credeintials for cloud and local if not created on cloud create creds and i have railway cli and vercel cli
