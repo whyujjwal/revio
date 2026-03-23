@@ -1,0 +1,23 @@
+# Agent Steering — Frontend (/apps/web)
+
+## Stack
+- Next.js (App Router) with TypeScript and Tailwind CSS
+- Shared types from `@revio/shared-types`
+- Shared UI components from `@revio/ui`
+
+## Commands
+- `pnpm dev` — start dev server
+- `pnpm build` — production build
+- `pnpm lint` — run ESLint
+
+## Rules
+- All pages go in `src/app/` using the App Router file conventions.
+- Use server components by default; add `"use client"` only when necessary.
+- API types come from `@revio/shared-types` — never define API response types locally.
+- Use `@revio/ui` components before creating new ones.
+- Environment variables visible to the browser must start with `NEXT_PUBLIC_`.
+- Need a package? → `bash skills/dependency-add/run.sh js <package> web`
+
+## Skills
+When backend schemas change, run `bash skills/type-sync/run.sh` from repo root
+to regenerate TypeScript types in `@revio/shared-types`.

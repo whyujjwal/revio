@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Build outputs
+dist/
+.next/
+out/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.db
+
+# Agent Memory (ChromaDB)
+.data/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Turbo
+.turbo/
+
+# Debug logs
+pnpm-debug.log*
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Alembic
+alembic/versions/__pycache__/
+
+# PRD Workflow — generated task files (not committed; use tasks/archive/ for history)
+tasks/PRD.md
+tasks/TASKS.md
+
+# Python test artifacts
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+apps/api/.pytest_cache/
+apps/api/tests/test.db
