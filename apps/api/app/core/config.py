@@ -1,5 +1,7 @@
+from typing import Annotated
+
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -40,7 +42,7 @@ class Settings(BaseSettings):
     LIVEKIT_API_SECRET: str = ""
 
     # CORS — accepts JSON list or comma-separated string
-    CORS_ORIGINS: list[str] = ["http://localhost:3000"]
+    CORS_ORIGINS: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
 
     # Logging
     LOG_LEVEL: str = "INFO"

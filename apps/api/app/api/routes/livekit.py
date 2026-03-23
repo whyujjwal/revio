@@ -31,9 +31,9 @@ def get_livekit_token(request: TokenRequest):
     token = AccessToken(
         api_key=settings.LIVEKIT_API_KEY,
         api_secret=settings.LIVEKIT_API_SECRET,
-    )
-    token.identity = f"user-{session_id[:8]}"
-    token.add_grant(
+    ).with_identity(
+        f"user-{session_id[:8]}"
+    ).with_grants(
         VideoGrants(
             room_join=True,
             room=room_name,

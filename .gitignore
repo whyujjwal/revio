@@ -1,6 +1,15 @@
 # Dependencies
 node_modules/
 .venv/
+.corepack/
+.npm-cache/
+.pip-cache/
+.pnpm-home/
+.pnpm-store/
+.pyuser/
+.tools/
+.tmp/
+.run/
 __pycache__/
 *.pyc
 *.egg-info/

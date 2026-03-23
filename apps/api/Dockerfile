@@ -48,4 +48,4 @@ EXPOSE ${PORT}
 COPY apps/api/start.sh /app/apps/api/start.sh
 RUN chmod +x /app/apps/api/start.sh
 
-CMD ["bash", "start.sh"]
+CMD ["sh", "start.sh"]
