@@ -7,6 +7,9 @@
     "lint": "turbo run lint"
   },
   "devDependencies": {
+    "next": "16.1.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
     "turbo": "^2.5.0"
   },
   "packageManager": "pnpm@10.30.0"
