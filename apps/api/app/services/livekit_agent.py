@@ -18,7 +18,6 @@ from app.services.resume_search import ResumeSearchService
 setup_logging()
 logger = get_logger(__name__)
 
-# Max number of resume context injections to keep in chat
 MAX_CONTEXT_INJECTIONS = 3
 
 
@@ -29,11 +28,9 @@ async def entrypoint(ctx: JobContext):
 
     search_service = ResumeSearchService()
 
-    # Build initial instructions
     initial_ctx = llm.ChatContext()
     initial_ctx.append(role="system", text=CHAT_SYSTEM_PROMPT)
 
-    # Use OpenAI for LLM, TTS, and STT
     openai_llm = openai_plugin.LLM(
         model="gpt-4o",
         api_key=settings.OPENAI_API_KEY,
@@ -42,14 +39,13 @@ async def entrypoint(ctx: JobContext):
     openai_stt = openai_plugin.STT(api_key=settings.OPENAI_API_KEY)
 
     assistant = VoiceAssistant(
-        vad=None,  # Use default VAD
+        vad=None,
         stt=openai_stt,
         llm=openai_llm,
         tts=openai_tts,
         chat_ctx=initial_ctx,
     )
 
-    # Track context injections to prevent unbounded growth
     context_injection_count = 0
 
     @assistant.on("user_speech_committed")
@@ -62,9 +58,7 @@ async def entrypoint(ctx: JobContext):
         try:
             results = search_service.search_resumes(msg.content, limit=3)
             if results:
-                # Cap context injections
                 if context_injection_count >= MAX_CONTEXT_INJECTIONS:
-                    # Remove oldest context injection (skip the initial system prompt)
                     items = assistant.chat_ctx.messages
                     for i, item in enumerate(items):
                         if i > 0 and item.role == "system":

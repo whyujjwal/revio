@@ -10,6 +10,6 @@ router = APIRouter()
 async def health_check():
     return HealthResponse(
         status="ok",
-        openai=bool(settings.OPENAI_API_KEY),
+        openai=bool(settings.OPENAI_API_KEY or settings.GEMINI_API_KEY),
         livekit=bool(settings.LIVEKIT_URL and settings.LIVEKIT_API_KEY and settings.LIVEKIT_API_SECRET),
     )

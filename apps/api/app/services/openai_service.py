@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import json
 
-from openai import OpenAI
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
 
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -21,9 +24,12 @@ MODEL = "gpt-4o"
 
 class OpenAIService:
     def __init__(self) -> None:
-        if not settings.OPENAI_API_KEY:
+        if OpenAI is None:
             self.client = None
-            logger.warning("OPENAI_API_KEY is not set — AI features disabled")
+            logger.warning("openai package is not installed - OpenAI features disabled")
+        elif not settings.OPENAI_API_KEY:
+            self.client = None
+            logger.warning("OPENAI_API_KEY is not set - AI features disabled")
         else:
             self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
@@ -57,9 +63,9 @@ class OpenAIService:
                 skills_count=len(data.get("skills", [])),
             )
             return data
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as exc:
             logger.error("failed to parse openai response", response=text[:200])
-            raise ValueError("OpenAI returned invalid JSON for resume extraction")
+            raise ValueError("OpenAI returned invalid JSON for resume extraction") from exc
 
     def generate_search_query(self, messages: list[dict]) -> str | None:
         if not self.client:
@@ -125,7 +131,7 @@ class OpenAIService:
             logger.error("openai chat failed", error=str(e))
             if "insufficient_quota" in str(e) or "429" in str(e):
                 return (
-                    "I'm having trouble connecting right now — the AI service quota "
+                    "I'm having trouble connecting right now - the AI service quota "
                     "has been exceeded. Please check your OpenAI billing or try again later."
                 )
             return f"Sorry, I encountered an error: {e}"

@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
 from app.core.config import settings
@@ -23,20 +23,19 @@ class TokenResponse(BaseModel):
 
 @router.post("/token", response_model=TokenResponse)
 def get_livekit_token(request: TokenRequest):
-    # Validate LiveKit is configured
     if not settings.LIVEKIT_URL or not settings.LIVEKIT_API_KEY or not settings.LIVEKIT_API_SECRET:
         raise HTTPException(
-            status_code=503,
-            detail="LiveKit is not configured. Set LIVEKIT_URL, LIVEKIT_API_KEY, and LIVEKIT_API_SECRET.",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Voice mode is disabled until LiveKit credentials are configured.",
         )
 
     try:
         from livekit.api import AccessToken, VideoGrants
-    except ImportError:
+    except ImportError as exc:
         raise HTTPException(
-            status_code=503,
-            detail="LiveKit SDK is not installed. Install with: uv sync",
-        )
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="LiveKit SDK is not installed. Install backend dependencies before using voice mode.",
+        ) from exc
 
     session_id = request.session_id or str(uuid.uuid4())
     room_name = f"revio-{session_id}"

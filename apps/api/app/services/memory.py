@@ -28,6 +28,7 @@ from pathlib import Path
 
 import chromadb
 from chromadb.config import Settings as ChromaSettings
+from chromadb.utils.embedding_functions.onnx_mini_lm_l6_v2 import ONNXMiniLM_L6_V2
 
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -35,6 +36,13 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 _client: chromadb.ClientAPI | None = None
+
+
+def _configure_chroma_model_cache(db_path: Path) -> None:
+    """Keep Chroma's downloaded embedding model inside the app data directory."""
+    model_cache_path = db_path / "model-cache" / "all-MiniLM-L6-v2"
+    model_cache_path.parent.mkdir(parents=True, exist_ok=True)
+    ONNXMiniLM_L6_V2.DOWNLOAD_PATH = model_cache_path
 
 
 def _get_client() -> chromadb.ClientAPI:
@@ -45,6 +53,7 @@ def _get_client() -> chromadb.ClientAPI:
 
     db_path = Path(settings.MEMORY_DB_PATH)
     db_path.mkdir(parents=True, exist_ok=True)
+    _configure_chroma_model_cache(db_path)
 
     _client = chromadb.PersistentClient(
         path=str(db_path),

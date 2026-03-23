@@ -1,8 +1,9 @@
-"""Resume processing pipeline: file → parse → extract → store → index."""
+"""Resume processing pipeline: file -> parse -> extract -> store -> index."""
 
 from __future__ import annotations
 
 import json
+import re
 import uuid
 from pathlib import Path
 
@@ -13,14 +14,35 @@ from app.core.config import settings
 from app.core.logging import get_logger
 from app.models.resume import Resume
 from app.services.file_parser import parse_resume_file
+from app.services.gemini import GeminiService, GeminiUnavailableError
 from app.services.openai_service import OpenAIService
 from app.services.resume_search import ResumeSearchService
 
 logger = get_logger(__name__)
 
+COMMON_SKILLS = [
+    "python",
+    "java",
+    "javascript",
+    "typescript",
+    "react",
+    "next.js",
+    "node.js",
+    "sql",
+    "postgresql",
+    "mongodb",
+    "aws",
+    "docker",
+    "kubernetes",
+    "fastapi",
+    "django",
+    "flask",
+    "excel",
+    "power bi",
+]
+
 
 def _save_upload(file: UploadFile) -> tuple[str, str]:
-    """Save uploaded file to disk. Returns (file_path, file_type)."""
     storage_dir = Path(settings.RESUME_STORAGE_PATH)
     storage_dir.mkdir(parents=True, exist_ok=True)
 
@@ -37,12 +59,59 @@ def _save_upload(file: UploadFile) -> tuple[str, str]:
     return str(file_path), file_type
 
 
+def _fallback_extract_resume_data(raw_text: str) -> dict:
+    lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
+    lower_text = raw_text.lower()
+
+    email_match = re.search(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", raw_text, re.I)
+    phone_match = re.search(r"(\+?\d[\d\s().-]{7,}\d)", raw_text)
+    years = [int(match) for match in re.findall(r"(\d+)\+?\s+years?", lower_text)]
+
+    skills = [
+        skill
+        for skill in COMMON_SKILLS
+        if re.search(rf"\b{re.escape(skill)}\b", lower_text, re.I)
+    ]
+
+    summary = " ".join(lines[:5])[:500] if lines else ""
+    candidate_name = lines[0][:120] if lines else None
+
+    return {
+        "candidate_name": candidate_name,
+        "email": email_match.group(0) if email_match else None,
+        "phone": phone_match.group(0).strip() if phone_match else None,
+        "location": None,
+        "summary": summary or None,
+        "experience_years": max(years) if years else None,
+        "skills": skills,
+        "experience": [],
+        "education": [],
+    }
+
+
+def _extract_resume_data(raw_text: str) -> dict:
+    openai_service = OpenAIService()
+    if openai_service.available:
+        try:
+            return openai_service.extract_resume_data(raw_text)
+        except Exception as exc:
+            logger.warning("openai extraction failed, using fallback extraction", error=str(exc))
+            return _fallback_extract_resume_data(raw_text)
+
+    try:
+        gemini_service = GeminiService()
+        return gemini_service.extract_resume_data(raw_text)
+    except GeminiUnavailableError as exc:
+        logger.warning("gemini unavailable, using fallback extraction", error=str(exc))
+        return _fallback_extract_resume_data(raw_text)
+    except Exception as exc:
+        logger.warning("gemini extraction failed, using fallback extraction", error=str(exc))
+        return _fallback_extract_resume_data(raw_text)
+
+
 def process_resume(db: Session, file: UploadFile) -> Resume:
-    """Process a single resume file through the full pipeline."""
-    # Save file
     file_path, file_type = _save_upload(file)
 
-    # Create DB record
     resume = Resume(
         original_filename=file.filename or "unknown",
         file_path=file_path,
@@ -54,16 +123,12 @@ def process_resume(db: Session, file: UploadFile) -> Resume:
     db.refresh(resume)
 
     try:
-        # Parse text
         raw_text = parse_resume_file(file_path)
         if not raw_text.strip():
             raise ValueError("No text could be extracted from the file")
 
         resume.raw_text = raw_text
-
-        # Extract structured data via OpenAI
-        ai = OpenAIService()
-        extracted = ai.extract_resume_data(raw_text)
+        extracted = _extract_resume_data(raw_text)
 
         resume.candidate_name = extracted.get("candidate_name")
         resume.email = extracted.get("email")
@@ -81,7 +146,6 @@ def process_resume(db: Session, file: UploadFile) -> Resume:
         education = extracted.get("education", [])
         resume.education_json = json.dumps(education) if education else None
 
-        # Index in ChromaDB
         search_service = ResumeSearchService()
         search_text = _build_search_text(resume, raw_text)
         metadata = {
@@ -90,8 +154,12 @@ def process_resume(db: Session, file: UploadFile) -> Resume:
             "experience_years": str(resume.experience_years or 0),
             "location": resume.location or "",
         }
-        chromadb_id = search_service.add_resume(resume.id, search_text, metadata)
-        resume.chromadb_id = chromadb_id
+        try:
+            chromadb_id = search_service.add_resume(resume.id, search_text, metadata)
+            resume.chromadb_id = chromadb_id
+        except Exception as exc:
+            logger.warning("resume indexing unavailable, continuing without semantic search", error=str(exc))
+            resume.chromadb_id = None
 
         resume.status = "completed"
         resume.error_message = None
@@ -108,7 +176,6 @@ def process_resume(db: Session, file: UploadFile) -> Resume:
 
 
 def _build_search_text(resume: Resume, raw_text: str) -> str:
-    """Build optimized text for vector search."""
     parts = []
     if resume.candidate_name:
         parts.append(f"Name: {resume.candidate_name}")
@@ -122,6 +189,5 @@ def _build_search_text(resume: Resume, raw_text: str) -> str:
     if resume.experience_years:
         parts.append(f"Experience: {resume.experience_years} years")
 
-    # Add a truncated version of raw text for additional context
     parts.append(raw_text[:2000])
     return "\n".join(parts)
