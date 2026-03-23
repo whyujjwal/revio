@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "4282f9afea04",
+  "session_id": "f186b26e-cceb-4cb1-ba88-2431de60935f",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-23T08:20:26.918722Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "vercel.json"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "e8f96bfc699a",
+  "transcript_identifier_at_start": "4964cc76-6cb1-4bd6-8647-16e9ad905bd5",
+  "token_usage": {
+    "input_tokens": 1810,
+    "cache_creation_tokens": 326103,
+    "cache_read_tokens": 37779908,
+    "output_tokens": 102424,
+    "api_call_count": 292
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-23T08:20:25.804395Z",
+    "agent_lines": 0,
+    "human_added": 19,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 19,
+    "agent_percentage": 0
+  },
+  "transcript_path": ".claude/projects/-Users-ujjwalraj-Developer-revio/f186b26e-cceb-4cb1-ba88-2431de60935f.jsonl"
+}
