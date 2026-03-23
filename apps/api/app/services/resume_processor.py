@@ -13,7 +13,7 @@ from app.core.config import settings
 from app.core.logging import get_logger
 from app.models.resume import Resume
 from app.services.file_parser import parse_resume_file
-from app.services.gemini import GeminiService
+from app.services.openai_service import OpenAIService
 from app.services.resume_search import ResumeSearchService
 
 logger = get_logger(__name__)
@@ -61,9 +61,9 @@ def process_resume(db: Session, file: UploadFile) -> Resume:
 
         resume.raw_text = raw_text
 
-        # Extract structured data via Gemini
-        gemini = GeminiService()
-        extracted = gemini.extract_resume_data(raw_text)
+        # Extract structured data via OpenAI
+        ai = OpenAIService()
+        extracted = ai.extract_resume_data(raw_text)
 
         resume.candidate_name = extracted.get("candidate_name")
         resume.email = extracted.get("email")

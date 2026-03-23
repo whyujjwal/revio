@@ -15,7 +15,7 @@ dependencies = [
     "psycopg2-binary>=2.9.0",
     "pdfplumber>=0.11.0",
     "python-docx>=1.1.0",
-    "google-genai>=1.0.0",
+    "openai>=1.0.0",
     "python-jose[cryptography]>=3.3.0",
     "python-multipart>=0.0.9",
     "livekit-api>=1.0.0",
@@ -30,7 +30,7 @@ dev = [
 ]
 voice = [
     "livekit-agents>=1.0.0",
-    "livekit-plugins-google>=1.0.0",
+    "livekit-plugins-openai>=1.0.0",
 ]
 
 [tool.hatch.build.targets.wheel]

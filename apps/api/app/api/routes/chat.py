@@ -1,4 +1,3 @@
-import json
 import uuid
 from datetime import datetime, timezone
 
@@ -9,7 +8,7 @@ from app.core.database import get_db
 from app.core.logging import get_logger
 from app.models.chat_session import ChatMessage, ChatSession
 from app.schemas.chat import CandidateSnippet, ChatRequest, ChatResponse
-from app.services.gemini import GeminiService
+from app.services.openai_service import OpenAIService
 from app.services.resume_search import ResumeSearchService
 
 logger = get_logger(__name__)
@@ -36,6 +35,24 @@ def chat(request: ChatRequest, db: Session = Depends(get_db)):
     session.last_active_at = datetime.now(timezone.utc)
     db.commit()
 
+    # Try AI service — gracefully handle unavailability
+    try:
+        ai = OpenAIService()
+    except Exception as e:
+        logger.error("openai service init failed", error=str(e))
+        return ChatResponse(
+            session_id=session_id,
+            message="AI service is not available. Please check the OPENAI_API_KEY configuration.",
+            candidates=None,
+        )
+
+    if not ai.available:
+        return ChatResponse(
+            session_id=session_id,
+            message="AI features are not configured. Please set the OPENAI_API_KEY environment variable.",
+            candidates=None,
+        )
+
     # Load conversation history
     history_rows = (
         db.query(ChatMessage)
@@ -46,11 +63,10 @@ def chat(request: ChatRequest, db: Session = Depends(get_db)):
     messages = [{"role": m.role, "content": m.content} for m in history_rows]
 
     # Generate search query from conversation
-    gemini = GeminiService()
     candidates: list[CandidateSnippet] | None = None
     resume_context = ""
 
-    search_query = gemini.generate_search_query(messages)
+    search_query = ai.generate_search_query(messages)
     if search_query:
         # Search resumes
         search_service = ResumeSearchService()
@@ -85,7 +101,7 @@ def chat(request: ChatRequest, db: Session = Depends(get_db)):
             resume_context = "\n".join(context_parts)
 
     # Generate AI response
-    ai_response = gemini.generate_chat_response(messages, resume_context)
+    ai_response = ai.generate_chat_response(messages, resume_context)
 
     # Save assistant message
     assistant_msg = ChatMessage(

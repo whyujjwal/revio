@@ -45,7 +45,6 @@ export default function UploadPage() {
 
     try {
       const res = await api.post("/resumes/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
         timeout: 300000,
       });
       setResult(res.data);

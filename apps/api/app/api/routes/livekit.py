@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from app.core.config import settings
@@ -23,7 +23,20 @@ class TokenResponse(BaseModel):
 
 @router.post("/token", response_model=TokenResponse)
 def get_livekit_token(request: TokenRequest):
-    from livekit.api import AccessToken, VideoGrants
+    # Validate LiveKit is configured
+    if not settings.LIVEKIT_URL or not settings.LIVEKIT_API_KEY or not settings.LIVEKIT_API_SECRET:
+        raise HTTPException(
+            status_code=503,
+            detail="LiveKit is not configured. Set LIVEKIT_URL, LIVEKIT_API_KEY, and LIVEKIT_API_SECRET.",
+        )
+
+    try:
+        from livekit.api import AccessToken, VideoGrants
+    except ImportError:
+        raise HTTPException(
+            status_code=503,
+            detail="LiveKit SDK is not installed. Install with: uv sync",
+        )
 
     session_id = request.session_id or str(uuid.uuid4())
     room_name = f"revio-{session_id}"

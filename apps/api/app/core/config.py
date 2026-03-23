@@ -30,8 +30,8 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRY_MINUTES: int = 1440
 
-    # Gemini AI
-    GEMINI_API_KEY: str = ""
+    # OpenAI
+    OPENAI_API_KEY: str = ""
 
     # Resume Storage
     RESUME_STORAGE_PATH: str = ".data/resumes"

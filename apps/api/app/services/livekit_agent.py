@@ -6,11 +6,9 @@ Start with: python -m app.scripts.run_livekit_agent
 
 from __future__ import annotations
 
-import json
-
 from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, llm
 from livekit.agents.voice_assistant import VoiceAssistant
-from livekit.plugins import google as google_plugin
+from livekit.plugins import openai as openai_plugin
 
 from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
@@ -19,6 +17,9 @@ from app.services.resume_search import ResumeSearchService
 
 setup_logging()
 logger = get_logger(__name__)
+
+# Max number of resume context injections to keep in chat
+MAX_CONTEXT_INJECTIONS = 3
 
 
 async def entrypoint(ctx: JobContext):
@@ -32,50 +33,65 @@ async def entrypoint(ctx: JobContext):
     initial_ctx = llm.ChatContext()
     initial_ctx.append(role="system", text=CHAT_SYSTEM_PROMPT)
 
-    # Use Gemini for LLM
-    gemini_llm = google_plugin.LLM(
-        model="gemini-2.0-flash",
-        api_key=settings.GEMINI_API_KEY,
+    # Use OpenAI for LLM, TTS, and STT
+    openai_llm = openai_plugin.LLM(
+        model="gpt-4o",
+        api_key=settings.OPENAI_API_KEY,
     )
-
-    # Use Google TTS and STT
-    google_tts = google_plugin.TTS(api_key=settings.GEMINI_API_KEY)
-    google_stt = google_plugin.STT(api_key=settings.GEMINI_API_KEY)
+    openai_tts = openai_plugin.TTS(api_key=settings.OPENAI_API_KEY)
+    openai_stt = openai_plugin.STT(api_key=settings.OPENAI_API_KEY)
 
     assistant = VoiceAssistant(
         vad=None,  # Use default VAD
-        stt=google_stt,
-        llm=gemini_llm,
-        tts=google_tts,
+        stt=openai_stt,
+        llm=openai_llm,
+        tts=openai_tts,
         chat_ctx=initial_ctx,
     )
 
+    # Track context injections to prevent unbounded growth
+    context_injection_count = 0
+
     @assistant.on("user_speech_committed")
     def on_user_speech(msg: llm.ChatMessage):
-        # Search for relevant resumes when user speaks
-        if msg.content:
-            try:
-                results = search_service.search_resumes(msg.content, limit=3)
-                if results:
-                    context_parts = []
-                    for r in results:
-                        meta = r.get("metadata", {})
-                        name = meta.get("candidate_name", "Unknown")
-                        skills = meta.get("skills", "")
-                        exp = meta.get("experience_years", "N/A")
-                        context_parts.append(
-                            f"- {name}: Skills: {skills}, Experience: {exp} years"
-                        )
+        nonlocal context_injection_count
 
-                    context_msg = (
-                        "Relevant candidates found:\n"
-                        + "\n".join(context_parts)
-                        + "\nUse this information to help the user."
+        if not msg.content:
+            return
+
+        try:
+            results = search_service.search_resumes(msg.content, limit=3)
+            if results:
+                # Cap context injections
+                if context_injection_count >= MAX_CONTEXT_INJECTIONS:
+                    # Remove oldest context injection (skip the initial system prompt)
+                    items = assistant.chat_ctx.messages
+                    for i, item in enumerate(items):
+                        if i > 0 and item.role == "system":
+                            items.pop(i)
+                            context_injection_count -= 1
+                            break
+
+                context_parts = []
+                for r in results:
+                    meta = r.get("metadata", {})
+                    name = meta.get("candidate_name", "Unknown")
+                    skills = meta.get("skills", "")
+                    exp = meta.get("experience_years", "N/A")
+                    context_parts.append(
+                        f"- {name}: Skills: {skills}, Experience: {exp} years"
                     )
-                    assistant.chat_ctx.append(role="system", text=context_msg)
-                    logger.info("injected resume context", count=len(results))
-            except Exception as e:
-                logger.error("resume search failed in voice", error=str(e))
+
+                context_msg = (
+                    "Relevant candidates found:\n"
+                    + "\n".join(context_parts)
+                    + "\nUse this information to help the user."
+                )
+                assistant.chat_ctx.append(role="system", text=context_msg)
+                context_injection_count += 1
+                logger.info("injected resume context", count=len(results))
+        except Exception as e:
+            logger.error("resume search failed in voice", error=str(e))
 
     assistant.start(ctx.room)
     await assistant.say(
