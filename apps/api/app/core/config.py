@@ -1,3 +1,4 @@
+import json
 from typing import Annotated
 
 from pydantic import field_validator
@@ -60,6 +61,14 @@ class Settings(BaseSettings):
     @classmethod
     def parse_cors_origins(cls, v):
         if isinstance(v, str):
+            v = v.strip()
+            # Try JSON array first: ["http://localhost:3000","http://localhost:3001"]
+            if v.startswith("["):
+                try:
+                    return json.loads(v)
+                except json.JSONDecodeError:
+                    pass
+            # Fall back to comma-separated: http://localhost:3000,http://localhost:3001
             return [origin.strip() for origin in v.split(",") if origin.strip()]
         return v
 
